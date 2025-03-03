@@ -1,0 +1,33 @@
+INSERT INTO patients (first_name, last_name, created_at) VALUES
+('John', 'Smith', NOW()),
+('Emily', 'Johnson', NOW()),
+('Michael', 'Williams', NOW()),
+('Jessica', 'Brown', NOW()),
+('David', 'Jones', NOW()),
+('Ashley', 'Garcia', NOW()),
+('Christopher', 'Miller', NOW()),
+('Amanda', 'Davis', NOW()),
+('Matthew', 'Rodriguez', NOW()),
+('Sarah', 'Martinez', NOW()),
+('James', 'Hernandez', NOW()),
+('Jennifer', 'Lopez', NOW()),
+('Daniel', 'Gonzalez', NOW()),
+('Elizabeth', 'Wilson', NOW()),
+('Joseph', 'Anderson', NOW()),
+('Stephanie', 'Thomas', NOW()),
+('Andrew', 'Jackson', NOW()),
+('Nicole', 'White', NOW()),
+('William', 'Harris', NOW()),
+('Samantha', 'Martin', NOW());
+
+INSERT INTO doctors (first_name, last_name, timezone, created_at) VALUES
+('Robert', 'Moore', 'America/New_York', NOW()),
+('Linda', 'Taylor', 'Europe/Kiev', NOW()),
+('Richard', 'Clark', 'Asia/Tokyo', NOW()),
+('Barbara', 'Lewis', 'Australia/Sydney', NOW()),
+('Charles', 'Lee', 'America/Los_Angeles', NOW()),
+('Susan', 'Walker', 'Europe/Berlin', NOW()),
+('George', 'Hall', 'Asia/Shanghai', NOW()),
+('Margaret', 'Allen', 'America/Chicago', NOW()),
+('Thomas', 'Young', 'Europe/Paris', NOW()),
+('Dorothy', 'King', 'Europe/Kiev', NOW());
