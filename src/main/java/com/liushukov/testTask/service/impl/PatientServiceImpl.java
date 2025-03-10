@@ -2,7 +2,6 @@ package com.liushukov.testTask.service.impl;
 
 import com.liushukov.testTask.dto.*;
 import com.liushukov.testTask.entity.Patient;
-import com.liushukov.testTask.entity.Visit;
 import com.liushukov.testTask.repository.DoctorRepository;
 import com.liushukov.testTask.repository.PatientRepository;
 import com.liushukov.testTask.service.PatientService;
@@ -40,28 +39,26 @@ public class PatientServiceImpl implements PatientService {
                 : patientRepository.findPatientIdsBySearchAndDoctorIds(search, doctorIds, pageable);
         logger.info("retrieved patient ids: {}", patientIds.getContent());
         List<Patient> patients = (patientIds.hasContent())
-                ? patientRepository.findPatientsWithVisitsAndDoctorsByIds(patientIds.getContent())
+                ? (doctorIds != null)
+                    ? patientRepository.findPatientsWithVisitsAndDoctorsByIds(patientIds.getContent(), doctorIds)
+                    : patientRepository.findPatientsWithVisitsAndDoctors(patientIds.getContent())
                 : Collections.emptyList();
         logger.info("retrieved patients: {}", patients);
-        Map<Integer, Long> doctorPatientCounts = doctorRepository.countTotalPatientsPerDoctor()
+        List<Integer> doctorIdsOnPage = patients
+                .stream()
+                .flatMap(v -> v.getVisits().stream())
+                .map(visit -> visit.getDoctor().getId())
+                .toList();
+        Map<Integer, Long> doctorPatientCounts = doctorRepository
+                .countTotalPatientsPerDoctor(doctorIdsOnPage)
                 .stream()
                 .collect(Collectors.toMap(
-                    DoctorPatientCountProjection::getDoctorId,
-                    DoctorPatientCountProjection::getTotalPatients
+                        DoctorPatientCountProjection::getDoctorId,
+                        DoctorPatientCountProjection::getTotalPatients
                 ));
         logger.info("retrieved count of patients per doctor: {}", doctorPatientCounts);
         List<PatientDto> patientDtos = patients.stream().map(patient -> {
-            Map<Integer, Visit> lastDoctorVisits = new HashMap<>();
-            for (Visit visit : patient.getVisits()) {
-                int doctorId = visit.getDoctor().getId();
-                if (doctorIds == null || doctorIds.contains(doctorId)) {
-                    if (!lastDoctorVisits.containsKey(doctorId) || visit.getEndDateTime()
-                            .isAfter(lastDoctorVisits.get(doctorId).getEndDateTime())) {
-                        lastDoctorVisits.put(doctorId, visit);
-                    }
-                }
-            }
-            List<VisitDto> visitDtos = lastDoctorVisits.values().stream()
+            List<VisitDto> visitDtos = patient.getVisits().stream()
                     .map(v -> new VisitDto(
                             v.getStartDateTime().atZone(ZoneId.of(v.getDoctor().getTimezone())).toString(),
                             v.getEndDateTime().atZone(ZoneId.of(v.getDoctor().getTimezone())).toString(),
@@ -75,7 +72,7 @@ public class PatientServiceImpl implements PatientService {
             return new PatientDto(patient.getFirstName(), patient.getLastName(), visitDtos);
         }).toList();
         logger.info("list of patientDto: {}", patientDtos);
-        logger.info("count: {}", patientDtos.size());
-        return new PatientResponse(patientDtos, patientDtos.size());
+        logger.info("count: {}", patientIds.getTotalElements());
+        return new PatientResponse(patientDtos, (int) patientIds.getTotalElements());
     }
 }

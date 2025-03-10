@@ -41,7 +41,28 @@ public interface PatientRepository extends JpaRepository<Patient, Integer> {
             LEFT JOIN FETCH p.visits v
             LEFT JOIN FETCH v.doctor d
             WHERE p.id IN :ids
+            AND d.id IN :doctorIds
+            AND v.endDateTime = (
+                SELECT MAX(v2.endDateTime) FROM Visit v2
+                WHERE v2.patient.id = p.id AND v2.doctor.id = d.id
+            )
             ORDER BY p.id
             """)
-    List<Patient> findPatientsWithVisitsAndDoctorsByIds(@Param("ids") List<Integer> ids);
+    List<Patient> findPatientsWithVisitsAndDoctorsByIds(@Param("ids") List<Integer> ids, List<Integer> doctorIds);
+
+    @Query("""
+            SELECT DISTINCT p FROM Patient p
+            LEFT JOIN FETCH p.visits v
+            LEFT JOIN FETCH v.doctor d
+            WHERE p.id IN :ids
+            AND (
+                v.id IS NULL
+                OR v.endDateTime = (
+                    SELECT MAX(v2.endDateTime) FROM Visit v2
+                    WHERE v2.patient.id = p.id AND v2.doctor.id = d.id
+                )
+            )
+            ORDER BY p.id
+            """)
+    List<Patient> findPatientsWithVisitsAndDoctors(@Param("ids") List<Integer> ids);
 }
