@@ -10,3 +10,7 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_USER: user
       MYSQL_PASSWORD: userpass
+  redis:
+    image: redis:latest
+    ports:
+      - '6379:6379'

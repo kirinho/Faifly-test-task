@@ -17,6 +17,9 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
+  redis:
+    host: localhost
+    port: 6379
   flyway:
     locations: classpath:/db/migration/schema, classpath:/db/migration/data
     lockRetryCount: 10

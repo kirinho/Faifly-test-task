@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.Cacheable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.time.ZoneId;
@@ -32,6 +33,7 @@ public class PatientServiceImpl implements PatientService {
     }
 
     @Override
+    @Cacheable(value = "patientCache", key = "#page + '-' + #size + '-' + #search + '-' + #doctorIds")
     public PatientResponse getAllPatients(int page, int size, String search, List<Integer> doctorIds) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Integer> patientIds = (doctorIds == null)

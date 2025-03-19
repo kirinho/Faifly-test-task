@@ -37,31 +37,35 @@ public interface PatientRepository extends JpaRepository<Patient, Integer> {
                                                      Pageable pageable);
 
     @Query("""
+            WITH LastVisit AS (
+                SELECT v2.patient.id as patientId, v2.doctor.id as doctorId, MAX(v2.endDateTime) as lastVisitTime
+                FROM Visit v2
+                GROUP BY v2.patient.id, v2.doctor.id
+            )
             SELECT DISTINCT p FROM Patient p
             LEFT JOIN FETCH p.visits v
             LEFT JOIN FETCH v.doctor d
+            LEFT JOIN LastVisit lv
+                ON v.patient.id = lv.patientId AND v.doctor.id = lv.doctorId AND v.endDateTime = lv.lastVisitTime
             WHERE p.id IN :ids
             AND d.id IN :doctorIds
-            AND v.endDateTime = (
-                SELECT MAX(v2.endDateTime) FROM Visit v2
-                WHERE v2.patient.id = p.id AND v2.doctor.id = d.id
-            )
             ORDER BY p.id
             """)
     List<Patient> findPatientsWithVisitsAndDoctorsByIds(@Param("ids") List<Integer> ids, List<Integer> doctorIds);
 
     @Query("""
+            WITH LastVisit AS (
+                SELECT v2.patient.id as patientId, v2.doctor.id as doctorId, MAX(v2.endDateTime) as lastVisitTime
+                FROM Visit v2
+                GROUP BY v2.patient.id, v2.doctor.id
+            )
             SELECT DISTINCT p FROM Patient p
             LEFT JOIN FETCH p.visits v
             LEFT JOIN FETCH v.doctor d
+            LEFT JOIN LastVisit lv
+                ON v.patient.id = lv.patientId AND v.doctor.id = lv.doctorId AND v.endDateTime = lv.lastVisitTime
             WHERE p.id IN :ids
-            AND (
-                v.id IS NULL
-                OR v.endDateTime = (
-                    SELECT MAX(v2.endDateTime) FROM Visit v2
-                    WHERE v2.patient.id = p.id AND v2.doctor.id = d.id
-                )
-            )
+            AND (v.id IS NULL OR lv.lastVisitTime IS NOT NULL)
             ORDER BY p.id
             """)
     List<Patient> findPatientsWithVisitsAndDoctors(@Param("ids") List<Integer> ids);
